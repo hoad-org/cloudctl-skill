@@ -21,10 +21,8 @@ The server exposes the following tools:
 import json
 import logging
 import sys
-from typing import Any
 
 from mcp.server import FastMCP
-from mcp.types import TextContent
 
 from cloudctl_skill import CloudctlSkill
 
@@ -41,7 +39,7 @@ mcp = FastMCP("cloudctl-skill")
 
 
 @mcp.tool()
-def cloudctl_context() -> str:
+async def cloudctl_context() -> str:
     """Get current cloud context.
 
     Returns the cloud provider, organization, account ID, region, and role.
@@ -50,9 +48,8 @@ def cloudctl_context() -> str:
         Current cloud context details
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.get_context())
+        result = await skill.get_context()
         return str(result)
     except Exception as e:
         error_msg = f"Error getting context: {str(e)}"
@@ -61,16 +58,15 @@ def cloudctl_context() -> str:
 
 
 @mcp.tool()
-def cloudctl_list_orgs() -> str:
+async def cloudctl_list_orgs() -> str:
     """List all configured organizations.
 
     Returns:
         JSON array of organizations with their cloud providers
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.list_organizations())
+        result = await skill.list_organizations()
         return json.dumps(result, indent=2)
     except Exception as e:
         error_msg = f"Error listing organizations: {str(e)}"
@@ -79,7 +75,7 @@ def cloudctl_list_orgs() -> str:
 
 
 @mcp.tool()
-def cloudctl_switch(organization: str) -> str:
+async def cloudctl_switch(organization: str) -> str:
     """Switch to a different organization.
 
     Uses the cloudctl binary's SSO mechanism - no manual credential entry needed.
@@ -91,9 +87,8 @@ def cloudctl_switch(organization: str) -> str:
         New context after successful switch
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.switch_context(organization))
+        result = await skill.switch_context(organization)
         return json.dumps(result.model_dump(mode="json"), indent=2)
     except Exception as e:
         error_msg = f"Error switching to {organization}: {str(e)}"
@@ -102,7 +97,7 @@ def cloudctl_switch(organization: str) -> str:
 
 
 @mcp.tool()
-def cloudctl_health() -> str:
+async def cloudctl_health() -> str:
     """Run comprehensive health diagnostics.
 
     Checks:
@@ -115,9 +110,8 @@ def cloudctl_health() -> str:
         Health check results with status details
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.health_check())
+        result = await skill.health_check()
         return json.dumps(result.model_dump(mode="json"), indent=2)
     except Exception as e:
         error_msg = f"Error running health check: {str(e)}"
@@ -126,7 +120,7 @@ def cloudctl_health() -> str:
 
 
 @mcp.tool()
-def cloudctl_check_credentials() -> str:
+async def cloudctl_check_credentials() -> str:
     """Verify all credentials are valid.
 
     Tests credential validity for all configured organizations.
@@ -135,9 +129,8 @@ def cloudctl_check_credentials() -> str:
         Dictionary with credential status for each organization
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.check_all_credentials())
+        result = await skill.check_all_credentials()
         return json.dumps(result, indent=2)
     except Exception as e:
         error_msg = f"Error checking credentials: {str(e)}"
@@ -146,7 +139,7 @@ def cloudctl_check_credentials() -> str:
 
 
 @mcp.tool()
-def cloudctl_token_status(organization: str) -> str:
+async def cloudctl_token_status(organization: str) -> str:
     """Get token status for specific organization.
 
     Args:
@@ -156,9 +149,8 @@ def cloudctl_token_status(organization: str) -> str:
         Token validity status with expiration information
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.get_token_status(organization))
+        result = await skill.get_token_status(organization)
         return json.dumps(result.model_dump(mode="json"), indent=2)
     except Exception as e:
         error_msg = f"Error getting token status for {organization}: {str(e)}"
@@ -167,7 +159,7 @@ def cloudctl_token_status(organization: str) -> str:
 
 
 @mcp.tool()
-def cloudctl_verify_credentials(organization: str) -> str:
+async def cloudctl_verify_credentials(organization: str) -> str:
     """Verify access to specific organization.
 
     Tests that you can authenticate to a specific organization.
@@ -179,9 +171,8 @@ def cloudctl_verify_credentials(organization: str) -> str:
         true/false for credential validity with error message if failed
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.verify_credentials(organization))
+        result = await skill.verify_credentials(organization)
         return json.dumps({"valid": result}, indent=2)
     except Exception as e:
         error_msg = f"Error verifying credentials for {organization}: {str(e)}"
@@ -190,7 +181,7 @@ def cloudctl_verify_credentials(organization: str) -> str:
 
 
 @mcp.tool()
-def cloudctl_switch_region(region: str) -> str:
+async def cloudctl_switch_region(region: str) -> str:
     """Switch AWS region.
 
     Sets AWS_REGION environment variable for current session.
@@ -202,9 +193,8 @@ def cloudctl_switch_region(region: str) -> str:
         Confirmation of region switch with new value
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.switch_region(region))
+        result = await skill.switch_region(region)
         return json.dumps(result.model_dump(mode="json"), indent=2)
     except Exception as e:
         error_msg = f"Error switching to region {region}: {str(e)}"
@@ -213,7 +203,7 @@ def cloudctl_switch_region(region: str) -> str:
 
 
 @mcp.tool()
-def cloudctl_switch_project(project: str) -> str:
+async def cloudctl_switch_project(project: str) -> str:
     """Switch GCP project.
 
     Sets GCLOUD_PROJECT and CLOUDSDK_CORE_PROJECT environment variables.
@@ -225,9 +215,8 @@ def cloudctl_switch_project(project: str) -> str:
         Confirmation of project switch with new value
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.switch_project(project))
+        result = await skill.switch_project(project)
         return json.dumps(result.model_dump(mode="json"), indent=2)
     except Exception as e:
         error_msg = f"Error switching to project {project}: {str(e)}"
@@ -236,7 +225,7 @@ def cloudctl_switch_project(project: str) -> str:
 
 
 @mcp.tool()
-def cloudctl_ensure_access(organization: str) -> str:
+async def cloudctl_ensure_access(organization: str) -> str:
     """Ensure access to organization with auto-recovery.
 
     Attempts to ensure you have access to an organization, with automatic
@@ -249,9 +238,8 @@ def cloudctl_ensure_access(organization: str) -> str:
         Status of access verification with current context and recovery details
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.ensure_cloud_access(organization))
+        result = await skill.ensure_cloud_access(organization)
         return json.dumps(result, indent=2)
     except Exception as e:
         error_msg = f"Error ensuring access to {organization}: {str(e)}"
@@ -260,7 +248,7 @@ def cloudctl_ensure_access(organization: str) -> str:
 
 
 @mcp.tool()
-def cloudctl_validate_switch() -> str:
+async def cloudctl_validate_switch() -> str:
     """Validate context switch operation.
 
     Confirms that the last context switch was successful.
@@ -269,9 +257,8 @@ def cloudctl_validate_switch() -> str:
         Current context after last switch with validation status
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.validate_switch())
+        result = await skill.validate_switch()
         return json.dumps(result, indent=2)
     except Exception as e:
         error_msg = f"Error validating switch: {str(e)}"
@@ -280,7 +267,7 @@ def cloudctl_validate_switch() -> str:
 
 
 @mcp.tool()
-def cloudctl_login(organization: str) -> str:
+async def cloudctl_login(organization: str) -> str:
     """Initiate SSO login for organization.
 
     Starts the SSO login flow for a specific organization.
@@ -292,9 +279,8 @@ def cloudctl_login(organization: str) -> str:
         Login status with current context after successful login
     """
     try:
-        import asyncio
         skill = CloudctlSkill()
-        result = asyncio.run(skill.login(organization))
+        result = await skill.login(organization)
         return json.dumps(result.model_dump(mode="json"), indent=2)
     except Exception as e:
         error_msg = f"Error logging in to {organization}: {str(e)}"

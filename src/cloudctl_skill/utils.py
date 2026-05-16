@@ -2,12 +2,11 @@
 
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 from .models import OperationLog
 
 
-def setup_audit_logging() -> Optional[Path]:
+def setup_audit_logging() -> Path | None:
     """Setup audit logging directory.
 
     Creates ~/.config/cloudctl/audit/ if it doesn't exist.
@@ -58,7 +57,7 @@ def _write_log_sync(log_file: Path, log: OperationLog) -> None:
             f.write(log.to_jsonl())
             f.write("\n")
     except Exception as e:
-        raise RuntimeError(f"Failed to write audit log: {e}")
+        raise RuntimeError(f"Failed to write audit log: {e}") from e
 
 
 def format_context_string(provider: str, organization: str, **kwargs: str) -> str:

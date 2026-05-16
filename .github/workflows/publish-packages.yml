@@ -1,0 +1,149 @@
+name: Publish to Python Packages
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install
+
+      - name: Run tests
+        run: |
+          poetry run pytest tests/ -v --cov=cloudctl_skill --cov-report=term-missing
+
+      - name: Run quality checks
+        run: |
+          poetry run ruff check cloudctl_skill/
+          poetry run black --check cloudctl_skill/
+          poetry run mypy cloudctl_skill/
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      - name: Build package
+        run: |
+          poetry build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+  publish-private:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: hoad-org/python-packages-private
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: ./cloudctl-skill/
+
+      - name: Commit and push to python-packages-private
+        run: |
+          cd ./cloudctl-skill
+          git config user.name "claude"
+          git config user.email "claude@hoad-org"
+          git add .
+          git commit -m "feat: publish cloudctl-skill ${{ github.ref_name }}" || true
+          git push
+
+  publish-public:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: hoad-org/python-packages
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: ./cloudctl-skill/
+
+      - name: Commit and push to python-packages
+        run: |
+          cd ./cloudctl-skill
+          git config user.name "claude"
+          git config user.email "claude@hoad-org"
+          git add .
+          git commit -m "feat: publish cloudctl-skill ${{ github.ref_name }}" || true
+          git push
+
+  create-release:
+    needs: [publish-private, publish-public]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: CloudctlSkill ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          body: |
+            ## CloudctlSkill ${{ github.ref_name }}
+
+            See [CHANGELOG.md](CHANGELOG.md) for details.
+
+            ### Installation
+
+            ```bash
+            # From python-packages (public)
+            pip install --index-url https://hoad-org.github.io/python-packages cloudctl-skill
+
+            # From python-packages-private (private)
+            pip install --index-url https://hoad-org.github.io/python-packages-private cloudctl-skill
+            ```
+
+            ### MCP Integration
+
+            Once installed, add to your Claude settings or tools configuration:
+
+            ```json
+            {
+              "cloudctl-skill": {
+                "command": "cloudctl-skill"
+              }
+            }
+            ```

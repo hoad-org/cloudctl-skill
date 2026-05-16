@@ -4,7 +4,7 @@
 pydantic>=2.0,<3.0           # Data validation and serialization
 pyyaml>=6.0                  # YAML configuration parsing
 rich>=13.0                   # Rich terminal output
-mcp>=0.2.0                   # Model Context Protocol for Claude integration
+mcp>=1.0                     # Model Context Protocol for Claude integration
 
 # Development dependencies (optional, for contributors)
 pytest>=9.0                  # Testing framework

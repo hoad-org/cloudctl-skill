@@ -44,6 +44,9 @@ packages = [
     { include = "cloudctl_skill", from = "src" }
 ]
 
+[tool.poetry.scripts]
+cloudctl-skill = "cloudctl_skill.mcp:main"
+
 [tool.poetry.dependencies]
 python = "^3.12"
 pydantic = "^2.5.0"
@@ -106,6 +109,8 @@ disallow_incomplete_defs = true
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+
+[tool.ruff.lint]
 select = [
     "E", "F", "W",
     "I",

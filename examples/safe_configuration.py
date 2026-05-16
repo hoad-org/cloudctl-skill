@@ -24,7 +24,7 @@ async def example_1_environment_variables() -> None:
     print()
 
     # Credentials are set in the environment BEFORE running the script
-    # export AWS_ACCESS_KEY_ID="AKIA..."
+    # export AWS_ACCESS_KEY_ID="EXAMPLE_KEY_..."
     # export AWS_SECRET_ACCESS_KEY="..."
     # export GCLOUD_APPLICATION_CREDENTIALS="$HOME/.config/gcp/..."
 
@@ -131,8 +131,8 @@ async def example_4_what_not_to_do() -> None:
     api_key = "sk-12345"  # NEVER!
 
 ❌ ANTI-PATTERN 2: Real values in configuration
-    api_key: "AKIA123456"  # NEVER!
-    password: "secret"     # NEVER!
+    api_key: "EXAMPLE_AWS_KEY_12345"  # NEVER!
+    secret_value: "secret"     # NEVER! Don't hardcode secrets
 
 ❌ ANTI-PATTERN 3: Storing credentials in models
     class CloudctlSkill:
@@ -141,7 +141,7 @@ async def example_4_what_not_to_do() -> None:
 
 ❌ ANTI-PATTERN 4: Real values in example files
     # .cloudctl.example.yaml
-    api_key: "AKIA123456"  # NEVER!
+    api_key: "EXAMPLE_AWS_KEY_12345"  # NEVER!
 
 ❌ ANTI-PATTERN 5: Credentials as function parameters
     async def login(api_key: str):  # NEVER!
@@ -150,11 +150,11 @@ async def example_4_what_not_to_do() -> None:
 ❌ ANTI-PATTERN 6: Storing credentials in test fixtures
     @pytest.fixture
     def config():
-        return {"api_key": "AKIA123456"}  # NEVER!
+        return {"api_key": "EXAMPLE_AWS_KEY_12345"}  # NEVER!
 
 ❌ ANTI-PATTERN 7: Real values in documentation
     # README.md
-    export AWS_ACCESS_KEY_ID="AKIA123456"  # NEVER!
+    export AWS_ACCESS_KEY_ID="EXAMPLE_AWS_KEY_12345"  # NEVER!
 
 ❌ ANTI-PATTERN 8: Committing .cloudctl.yaml
     git add .cloudctl.yaml  # NEVER! It's in .gitignore!

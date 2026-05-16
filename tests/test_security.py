@@ -18,10 +18,7 @@ from cloudctl_skill import CloudctlSkill
 from cloudctl_skill.models import (
     CloudContext,
     CommandResult,
-    HealthCheckResult,
-    OperationLog,
     SkillConfig,
-    TokenStatus,
 )
 
 
@@ -43,9 +40,7 @@ class TestNoCredentialStorage:
         actual_fields = set(SkillConfig.model_fields.keys())
         forbidden_in_config = forbidden_fields & actual_fields
 
-        assert (
-            not forbidden_in_config
-        ), f"SkillConfig contains forbidden credential fields: {forbidden_in_config}"
+        assert not forbidden_in_config, f"SkillConfig contains forbidden credential fields: {forbidden_in_config}"
 
     def test_cloud_context_has_no_credentials(self) -> None:
         """CloudContext should never store credentials."""
@@ -61,9 +56,7 @@ class TestNoCredentialStorage:
         actual_fields = set(CloudContext.model_fields.keys())
         forbidden_in_context = forbidden_fields & actual_fields
 
-        assert (
-            not forbidden_in_context
-        ), f"CloudContext contains forbidden credential fields: {forbidden_in_context}"
+        assert not forbidden_in_context, f"CloudContext contains forbidden credential fields: {forbidden_in_context}"
 
     def test_skill_instance_has_no_credential_attributes(self) -> None:
         """CloudctlSkill instance should not store credentials."""
@@ -88,15 +81,10 @@ class TestNoCredentialStorage:
 
         # Filter out methods and built-ins
         forbidden_found = {
-            attr
-            for attr in forbidden_found
-            if not callable(getattr(skill, attr))
-            and not attr.startswith("__")
+            attr for attr in forbidden_found if not callable(getattr(skill, attr)) and not attr.startswith("__")
         }
 
-        assert (
-            not forbidden_found
-        ), f"CloudctlSkill stores forbidden attributes: {forbidden_found}"
+        assert not forbidden_found, f"CloudctlSkill stores forbidden attributes: {forbidden_found}"
 
     def test_no_credentials_in_cloudctlskill_init(self) -> None:
         """CloudctlSkill.__init__ should not accept credentials."""
@@ -115,9 +103,7 @@ class TestNoCredentialStorage:
 
         forbidden_in_init = forbidden_params & param_names
 
-        assert (
-            not forbidden_in_init
-        ), f"CloudctlSkill.__init__ takes credential parameters: {forbidden_in_init}"
+        assert not forbidden_in_init, f"CloudctlSkill.__init__ takes credential parameters: {forbidden_in_init}"
 
 
 class TestConfigurationSafety:
@@ -148,9 +134,7 @@ class TestConfigurationSafety:
             for line in content.split("\n"):
                 if line.strip().startswith("#"):
                     continue
-                assert (
-                    pattern not in line
-                ), f"Example config contains pattern '{pattern}' in line: {line}"
+                assert pattern not in line, f"Example config contains pattern '{pattern}' in line: {line}"
 
     def test_config_validation_rejects_credentials(self) -> None:
         """Configuration validation should reject credential keys."""
@@ -257,9 +241,7 @@ class TestNoHardcodedSecrets:
             ]
 
             for pattern in forbidden_patterns:
-                assert (
-                    pattern not in content
-                ), f"Private key pattern '{pattern}' found in {py_file}"
+                assert pattern not in content, f"Private key pattern '{pattern}' found in {py_file}"
 
     def test_no_credential_assignments_in_source(self) -> None:
         """Code should not assign credentials."""
@@ -292,9 +274,7 @@ class TestNoHardcodedSecrets:
                         # This might be a false positive (like in docs)
                         # But we should be aware of it
                         if "example" not in line.lower() and "test" not in line.lower():
-                            pytest.skip(
-                                f"Potential credential assignment in {py_file}:{line_num}: {line.strip()}"
-                            )
+                            pytest.skip(f"Potential credential assignment in {py_file}:{line_num}: {line.strip()}")
 
 
 class TestConfigurationPrecedence:
@@ -349,14 +329,10 @@ class TestSubprocessIsolation:
             "key",
         }
 
-        actual_attributes = set(
-            attr for attr in dir(skill) if not attr.startswith("_")
-        )
+        actual_attributes = {attr for attr in dir(skill) if not attr.startswith("_")}
         forbidden_found = forbidden_attributes & actual_attributes
 
-        assert (
-            not forbidden_found
-        ), f"CloudctlSkill stores credential attributes: {forbidden_found}"
+        assert not forbidden_found, f"CloudctlSkill stores credential attributes: {forbidden_found}"
 
     def test_subprocess_command_does_not_leak_paths(self) -> None:
         """Subprocess execution should not reveal credential paths."""
@@ -448,15 +424,7 @@ class TestSecuritySummary:
             content = f.read()
 
         # Verify key sections are documented
-        assert (
-            "Secrets Management" in content
-        ), "SECURITY.md missing Secrets Management section"
-        assert (
-            "Architecture Patterns" in content
-        ), "SECURITY.md missing Architecture Patterns section"
-        assert (
-            "Code Review Security" in content
-        ), "SECURITY.md missing Code Review checklist"
-        assert (
-            "Pre-commit Hooks" in content
-        ), "SECURITY.md missing Pre-commit Hooks section"
+        assert "Secrets Management" in content, "SECURITY.md missing Secrets Management section"
+        assert "Architecture Patterns" in content, "SECURITY.md missing Architecture Patterns section"
+        assert "Code Review Security" in content, "SECURITY.md missing Code Review checklist"
+        assert "Pre-commit Hooks" in content, "SECURITY.md missing Pre-commit Hooks section"

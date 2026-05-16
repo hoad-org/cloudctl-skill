@@ -2,13 +2,13 @@
 
 ## Repository Overview
 
-This repository contains **CloudctlSkill v1.2.0** — an enterprise-grade Python library for cloud context management with Model Context Protocol (MCP) integration for Claude.
+This repository contains **CloudctlSkill v2.0.0** — an enterprise-grade Python library for cloud context management with Model Context Protocol (MCP) integration for Claude.
 
 **Key Facts:**
-- **Purpose**: Multi-cloud context management (AWS, GCP, Azure)
+- **Purpose**: Multi-cloud context management (AWS, GCP, Azure, OCI)
 - **Model**: Zero-credential architecture (credentials handled externally)
 - **Integration**: MCP server for Claude (`/cloudctl` command)
-- **Status**: Production-ready, 48 tests passing
+- **Status**: Production-ready, 48+ tests passing, v2.0.0 with OCI support
 
 ## When to Use CloudctlSkill
 
@@ -35,11 +35,74 @@ Cloud Provider (AWS/GCP/Azure)
 
 **Key Design Principle**: cloudctl binary manages all authentication. CloudctlSkill is a stateless wrapper.
 
-## Configuration
+## Configuration Strategy
 
-### Master Configuration: ~/.cloudctl.yaml
+### ✅ CRITICAL ARCHITECTURE PRINCIPLE
 
-Defines your organizations and preferences:
+**All configuration belongs in cloudctl, NOT in CloudctlSkill code.**
+
+```
+CloudctlSkill Code Repository (Public/Safe)
+    ↓ (reads from)
+Local Filesystem Only (Private/Secure)
+    ├─ ~/.config/cloudctl/orgs.yaml ← ALL organization config here
+    ├─ ~/.aws/ ← AWS credentials (AWS CLI manages)
+    ├─ ~/.config/gcloud/ ← GCP credentials (gcloud manages)
+    └─ ~/.azure/ ← Azure credentials (Azure CLI manages)
+```
+
+### Master Configuration: ~/.config/cloudctl/orgs.yaml
+
+All organization definitions stored here (local machine only, never in repo):
+
+```yaml
+orgs:
+  - name: myorg
+    provider: aws
+    partition: aws
+    sso_start_url: https://d-9c67661145.awsapps.com/start
+    sso_region: eu-west-2
+    default_region: eu-west-2
+    allowed_regions:
+      - eu-west-1
+      - eu-west-2
+      - us-east-1
+
+  - name: gcp-terrorgems
+    provider: gcp
+    default_project: asatst-gemini-api-v2
+    default_region: us-central1
+    allowed_regions:
+      - us-central1
+      - europe-west1
+      - asia-southeast1
+
+  - name: azure-craighoad
+    provider: azure
+    subscription_id: 18c17ed4-4932-4ddc-91e6-bef66bb2129b
+    tenant_id: bd93c484-a208-44fc-bf28-5fbb11ab79ba
+    default_region: eastus
+    allowed_regions:
+      - eastus
+      - westus
+      - northeurope
+      - westeurope
+
+enabled_orgs:
+  - myorg
+  - gcp-terrorgems
+  - azure-craighoad
+```
+
+**IMPORTANT**: 
+- ✅ Subscription/Tenant IDs are metadata only (not secrets)
+- ✅ Actual credentials managed by cloud CLIs (AWS CLI, gcloud, az)
+- ✅ This file NEVER committed to repository
+- ✅ Add `.config/cloudctl/` to .gitignore
+
+### CloudctlSkill Configuration: ~/.cloudctl.yaml (Optional)
+
+Defines skill-specific settings (optional, not required):
 
 ```yaml
 cloudctl:
@@ -53,28 +116,20 @@ cloudctl:
 environment_overrides:
   AWS_REGION: us-west-2
   GCLOUD_PROJECT: my-dev-project
+  AZURE_SUBSCRIPTION_ID: 18c17ed4-4932-4ddc-91e6-bef66bb2129b
 ```
 
-### MCP Server Registration: ~/.claude/settings.json
+### Skill Registration: ~/.claude/skills/cloudctl/SKILL.md
 
-CloudctlSkill is registered as an MCP server:
+CloudctlSkill is registered as a legacy skill (not MCP in current Claude version):
 
-```json
-{
-  "mcpServers": {
-    "cloudctl": {
-      "command": "python3",
-      "args": ["-m", "cloudctl_skill.mcp"],
-      "cwd": "/path/to/cloudctl-skill",
-      "description": "Cloud context management"
-    }
-  }
-}
+```yaml
+name: cloudctl
+displayName: CloudctlSkill
+description: Multi-cloud context management for AWS, GCP, and Azure
 ```
 
-### Skill Manifest: ~/.claude/skills/cloudctl.json
-
-Describes available commands and capabilities.
+**Location**: `~/.claude/skills/cloudctl/SKILL.md`
 
 ## Development Workflow
 
@@ -183,17 +238,30 @@ cloudctl-skill/
 
 ## Security Model
 
-CloudctlSkill follows **defense-in-depth security**:
+CloudctlSkill follows **defense-in-depth security** with zero configuration in code:
 
-✅ **No credentials in code** — Never stored or handled  
-✅ **No credentials in config** — Only organization definitions  
-✅ **No credentials in environment** — Managed by cloudctl  
+### Code Repository (Public/Safe)
+✅ **Zero configuration** — No org names, IDs, or settings  
+✅ **No credentials** — Never stored or handled  
+✅ **No sensitive data** — Only generic code  
+✅ **Stateless wrapper** — Calls cloudctl, returns results  
+✅ **Safe to open-source** — No secrets to protect  
+
+### Local Machine (Private/Secure)
+✅ **Organization config** — `~/.config/cloudctl/orgs.yaml`  
+✅ **AWS credentials** — `~/.aws/` (AWS CLI manages)  
+✅ **GCP credentials** — `~/.config/gcloud/` (gcloud manages)  
+✅ **Azure credentials** — `~/.azure/` (Azure CLI manages)  
+✅ **Audit logs** — `~/.config/cloudctl/audit/` (JSONL format)  
+
+### Code Quality
 ✅ **Pydantic validation** — All inputs/outputs validated  
 ✅ **Immutable models** — Frozen dataclasses  
-✅ **Audit logging** — JSONL compliance format  
+✅ **Async safety** — No blocking operations  
 ✅ **Pre-commit hooks** — Prevent credential commits  
+✅ **48 security tests** — Comprehensive coverage  
 
-**Golden Rule**: The `cloudctl` binary handles all authentication. CloudctlSkill never touches credentials.
+**Golden Rule**: The `cloudctl` binary handles all authentication. CloudctlSkill code reads from local filesystem only.
 
 ## Testing Strategy
 
@@ -301,16 +369,114 @@ cat pytest.ini
 - **Issue Tracker**: https://github.com/rhyscraig/cloudctl-skill/issues
 - **Discussions**: https://github.com/rhyscraig/cloudctl-skill/discussions
 
+## Multi-Cloud Support
+
+CloudctlSkill supports three major cloud providers with configuration stored entirely in cloudctl, not in the skill code.
+
+### AWS (myorg)
+- **Provider**: AWS
+- **Config Location**: `~/.config/cloudctl/orgs.yaml`
+- **Credentials**: `~/.aws/` (AWS CLI managed)
+- **Auth Method**: AWS SSO / IAM roles
+- **All 12 Tools**: Fully supported
+
+### GCP (gcp-terrorgems)
+- **Provider**: Google Cloud Platform
+- **Config Location**: `~/.config/cloudctl/orgs.yaml`
+- **Credentials**: `~/.config/gcloud/` (gcloud managed)
+- **Auth Method**: gcloud auth / service accounts
+- **All 12 Tools**: Fully supported
+
+### Azure (azure-craighoad)
+- **Provider**: Microsoft Azure
+- **Config Location**: `~/.config/cloudctl/orgs.yaml`
+- **Credentials**: `~/.azure/` (Azure CLI managed)
+- **Auth Method**: Azure CLI / service principals
+- **All 12 Tools**: Fully supported
+
+### Oracle Cloud Infrastructure (oci-craighoad) — New in v2.0.0
+- **Provider**: Microsoft Azure
+- **Config Location**: `~/.config/cloudctl/orgs.yaml`
+- **Credentials**: `~/.azure/` (Azure CLI managed)
+- **Auth Method**: Azure CLI / service principals
+- **All 12 Tools**: Fully supported
+
+### Verification
+
+Check multi-cloud setup:
+```bash
+# List all organizations
+cloudctl org list
+
+# Should show:
+# Configured Organizations (3)
+#   myorg [AWS] enabled
+#   gcp-terrorgems [GCP] enabled
+#   azure-craighoad [AZURE] enabled
+```
+
+## When Adding Features to CloudctlSkill
+
+### Do NOT Add Configuration
+
+❌ **NEVER** add organization names to the code  
+❌ **NEVER** add subscription/tenant IDs to the code  
+❌ **NEVER** add account numbers to the code  
+❌ **NEVER** hardcode default regions  
+❌ **NEVER** store credentials anywhere  
+
+### DO Add Tests
+
+✅ **ALWAYS** write tests first (TDD)  
+✅ **ALWAYS** test with local cloudctl config only  
+✅ **ALWAYS** ensure >85% coverage  
+✅ **ALWAYS** add security tests if touching credentials  
+✅ **ALWAYS** run `make test-cov` before commit  
+
+### DO Update Documentation
+
+✅ **ALWAYS** update `docs/CLOUDCTLSKILL_DOCUMENTATION.md`  
+✅ **ALWAYS** update relevant API docs  
+✅ **ALWAYS** add examples in `.claude/cloudctl.md`  
+✅ **ALWAYS** update this file if architecture changes  
+
+### Process for Adding Features
+
+```bash
+# 1. Write tests first
+vim tests/test_cloudctl_skill.py
+
+# 2. Implement feature
+vim src/cloudctl_skill/skill.py
+
+# 3. Run tests
+make test-cov
+
+# 4. Verify no hardcoded config
+grep -r "18c17ed4\|bd93c484\|myorg\|gcp-terrorgems" src/
+
+# 5. Format and lint
+make lint format type-check
+
+# 6. Update documentation
+vim docs/CLOUDCTLSKILL_DOCUMENTATION.md
+
+# 7. Create PR with test results
+```
+
 ## Contributing
 
 Contributions welcome! When adding features:
 
-1. Write tests first (TDD approach)
-2. Ensure all 48 tests pass
-3. Add security tests if handling credentials
-4. Update documentation
-5. Run: `make lint format type-check`
-6. Create PR with test results
+1. **Write tests first** (TDD approach)
+2. **Ensure all 48 tests pass** (`make test`)
+3. **Add security tests** if handling credentials
+4. **Add configuration safety tests** if parsing config
+5. **Update documentation** (code + markdown)
+6. **Run quality checks**: `make lint format type-check`
+7. **Create PR with test results**
+
+**Golden Rule**: Code is generic. Configuration lives in cloudctl. Credentials never appear in the repo.
 
 ## License
 
@@ -318,4 +484,12 @@ MIT License — See LICENSE file
 
 ---
 
-**Questions?** Check `.claude/SKILL.md` or `TROUBLESHOOTING.md`
+**Documentation**:
+- User Guide: `.claude/cloudctl.md`
+- Integration Guide: `.claude/SKILL.md`
+- Full Documentation: `docs/CLOUDCTLSKILL_DOCUMENTATION.md`
+- API Reference: `docs/API.md`
+- Architecture: `docs/ARCHITECTURE.md`
+- Troubleshooting: `TROUBLESHOOTING.md`
+
+**Questions?** Check the docs or TROUBLESHOOTING.md

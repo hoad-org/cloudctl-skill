@@ -68,7 +68,7 @@ async def _run_oci_async(args: list[str], timeout: int = 30) -> tuple[int, str, 
     try:
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
         return proc.returncode or 0, stdout.decode(), stderr.decode()
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         return 1, "", "OCI CLI command timed out"
 
@@ -180,7 +180,7 @@ async def oci_login(org_name: str, profile: str = "DEFAULT") -> CommandResult:
         status=CommandStatus.FAILURE,
         error="OCI API key authentication failed.",
         fix="Ensure your API key is uploaded to Oracle Cloud Console and ~/.oci/config is correct. "
-            "Run: awsctl oci login",
+        "Run: awsctl oci login",
     )
 
 

@@ -1,0 +1,124 @@
+# Azure Configuration Template for cloudctl
+#
+# IMPORTANT: This is a LOCAL TEMPLATE for adding Azure support to cloudctl.
+# Copy this to your home directory or project directory as .cloudctl.yaml
+# and customize with your own Azure credentials.
+#
+# SECURITY: Never commit actual credentials or subscription IDs to the repository.
+# Use .gitignore to exclude .cloudctl.yaml files.
+#
+# Configuration precedence (highest to lowest):
+# 1. Environment variables (CLOUDCTL_*, AZURE_*, etc.)
+# 2. ./.cloudctl.yaml (current directory) ← LOCAL FILE
+# 3. ~/.cloudctl.yaml (home directory)
+# 4. Default values
+
+# CloudctlSkill settings
+cloudctl:
+  timeout_seconds: 30
+  max_retries: 3
+  verify_context_after_switch: true
+  enable_audit_logging: true
+  enable_caching: true
+  cache_ttl_seconds: 300
+
+# Environment variable overrides
+environment_overrides:
+  # AWS Configuration (if using AWS)
+  AWS_REGION: us-west-2
+
+  # GCP Configuration (if using GCP)
+  # GCLOUD_PROJECT: my-project
+  # CLOUDSDK_CORE_PROJECT: my-project
+
+  # Azure Configuration
+  # Replace these with YOUR Azure subscription and tenant IDs
+  AZURE_SUBSCRIPTION_ID: "18c17ed4-4932-4ddc-91e6-bef66bb2129b"
+  AZURE_TENANT_ID: "bd93c484-a208-44fc-bf28-5fbb11ab79ba"
+
+# ============================================================================
+# SETUP INSTRUCTIONS FOR AZURE
+# ============================================================================
+#
+# 1. Copy this file to your home directory:
+#    cp .cloudctl.yaml.azure-local ~/.cloudctl.yaml
+#
+# 2. Install Azure CLI:
+#    brew install azure-cli
+#
+# 3. Authenticate with Azure:
+#    az login --use-device-code
+#    # Then enter the device code at https://login.microsoft.com/device
+#
+# 4. Add Azure organization to cloudctl:
+#    cloudctl org add --provider azure --name azure-production
+#
+# 5. Verify Azure is added:
+#    cloudctl org list
+#
+# 6. Switch to Azure context:
+#    cloudctl switch azure-production
+#
+# 7. Verify context:
+#    cloudctl status
+#
+# ============================================================================
+# MULTI-CLOUD TESTING WITH CLOUDCTL
+# ============================================================================
+#
+# Test AWS:
+#   cloudctl switch myorg
+#   cloudctl status
+#
+# Test GCP:
+#   cloudctl switch gcp-terrorgems
+#   cloudctl status
+#
+# Test Azure:
+#   cloudctl switch azure-production
+#   cloudctl status
+#
+# Test all three in sequence:
+#   cloudctl switch myorg && echo "AWS OK" && \
+#   cloudctl switch gcp-terrorgems && echo "GCP OK" && \
+#   cloudctl switch azure-production && echo "Azure OK"
+#
+# ============================================================================
+# CREDENTIAL MANAGEMENT
+# ============================================================================
+#
+# AWS:
+#   - Uses AWS CLI credentials (aws configure)
+#   - IAM role assumption through cloudctl
+#   - MFA supported
+#
+# GCP:
+#   - Uses gcloud CLI credentials (gcloud auth login)
+#   - Service account support
+#   - Application Default Credentials (ADC)
+#
+# Azure:
+#   - Uses Azure CLI credentials (az login)
+#   - Service principal support
+#   - Device code flow for non-interactive auth
+#   - Managed identity support
+#
+# ============================================================================
+# SECURITY NOTES
+# ============================================================================
+#
+# ✅ DO:
+# - Keep subscription IDs and tenant IDs in local config
+# - Use environment variables for sensitive settings
+# - Use .gitignore to exclude .cloudctl.yaml
+# - Rotate credentials regularly
+# - Use service principals for CI/CD
+#
+# ❌ DON'T:
+# - Commit credentials to git
+# - Store API keys in .cloudctl.yaml
+# - Use personal credentials in CI/CD
+# - Share configuration files with credentials
+# - Commit this file with actual values to public repos
+#
+# ============================================================================
