@@ -1,7 +1,7 @@
 {
   "name": "cloudctl",
   "display_name": "CloudctlSkill",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Enterprise cloud context management skill for AWS, Azure, and GCP. Switch contexts, manage credentials, validate access, audit operations.",
   "author": "Craig Hoad",
   "license": "MIT",
@@ -13,6 +13,7 @@
     "aws",
     "gcp",
     "azure",
+    "oci",
     "context-switching",
     "credential-management",
     "multi-cloud"
@@ -73,9 +74,9 @@
     "environment_overrides": true
   },
   "testing": {
-    "unit_tests": 30,
-    "security_tests": 24,
-    "total_tests": 54,
+    "unit_tests": 200,
+    "security_tests": 59,
+    "total_tests": 259,
     "coverage": "100% core",
     "async_support": true
   },

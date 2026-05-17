@@ -2,7 +2,7 @@
 
 ## For Claude Sessions (Code & Desktop)
 
-This repository contains the **CloudctlSkill v1.2.0** — enterprise cloud context management for AWS, GCP, and Azure with zero credential handling.
+This repository contains the **CloudctlSkill v2.0.0** — enterprise cloud context management for AWS, GCP, Azure, and OCI with zero credential handling.
 
 ### How Claude Should Use This Skill
 

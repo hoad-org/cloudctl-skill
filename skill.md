@@ -1,7 +1,7 @@
 ---
 name: cloudctl
 displayName: CloudctlSkill
-version: 1.2.0
+version: 2.0.0
 description: Enterprise cloud context management skill for AWS, GCP, and Azure. Switch contexts, manage credentials, validate access without manual credential management.
 author: Craig Hoad
 license: MIT

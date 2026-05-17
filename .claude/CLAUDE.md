@@ -394,12 +394,12 @@ CloudctlSkill supports three major cloud providers with configuration stored ent
 - **Auth Method**: Azure CLI / service principals
 - **All 12 Tools**: Fully supported
 
-### Oracle Cloud Infrastructure (oci-craighoad) — New in v2.0.0
-- **Provider**: Microsoft Azure
-- **Config Location**: `~/.config/cloudctl/orgs.yaml`
-- **Credentials**: `~/.azure/` (Azure CLI managed)
-- **Auth Method**: Azure CLI / service principals
-- **All 12 Tools**: Fully supported
+### Oracle Cloud Infrastructure (oci-craighoad) — Planned for Future Release
+- **Provider**: Oracle Cloud Infrastructure
+- **Status**: Planned future support (not yet implemented)
+- **Implementation**: See ARCHITECTURE.md → Future Enhancements
+- **Auth Method**: OCI CLI / service principals (when implemented)
+- **All 12 Tools**: To be supported in future release
 
 ### Verification
 
