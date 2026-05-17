@@ -1,7 +1,10 @@
 """Tests for CloudctlSkill MCP server."""
 
+import asyncio
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 # Import the MCP module to test the functions
 from cloudctl_skill import mcp as mcp_module
@@ -10,41 +13,45 @@ from cloudctl_skill import mcp as mcp_module
 class TestMCPToolFunctions:
     """Tests for individual MCP tool functions."""
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_context_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_context_success(self, mock_skill_class: MagicMock) -> None:
         """context tool should return cloud context."""
         mock_instance = MagicMock()
         mock_instance.get_context = AsyncMock(return_value={"provider": "aws", "organization": "test-org"})
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_context()
+        result = await mcp_module.cloudctl_context()
         assert isinstance(result, str)
         assert "aws" in result.lower() or "test-org" in result.lower()
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_context_error(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_context_error(self, mock_skill_class: MagicMock) -> None:
         """context tool should handle errors gracefully."""
         mock_instance = MagicMock()
         mock_instance.get_context = AsyncMock(side_effect=Exception("Test error"))
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_context()
+        result = await mcp_module.cloudctl_context()
         assert "Error" in result or "error" in result
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_list_orgs_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_list_orgs_success(self, mock_skill_class: MagicMock) -> None:
         """list_orgs tool should return organizations."""
         mock_instance = MagicMock()
         mock_instance.list_organizations = AsyncMock(return_value=[{"name": "org1", "provider": "aws"}])
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_list_orgs()
+        result = await mcp_module.cloudctl_list_orgs()
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_switch_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_switch_success(self, mock_skill_class: MagicMock) -> None:
         """switch tool should handle context switching."""
         mock_instance = MagicMock()
         mock_result = MagicMock()
@@ -52,13 +59,14 @@ class TestMCPToolFunctions:
         mock_instance.switch_context = AsyncMock(return_value=mock_result)
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_switch("new-org")
+        result = await mcp_module.cloudctl_switch("new-org")
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_health_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_health_success(self, mock_skill_class: MagicMock) -> None:
         """health tool should run diagnostics."""
         mock_instance = MagicMock()
         mock_result = MagicMock()
@@ -66,25 +74,27 @@ class TestMCPToolFunctions:
         mock_instance.health_check = AsyncMock(return_value=mock_result)
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_health()
+        result = await mcp_module.cloudctl_health()
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_check_credentials_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_check_credentials_success(self, mock_skill_class: MagicMock) -> None:
         """check_credentials tool should verify credentials."""
         mock_instance = MagicMock()
         mock_instance.check_all_credentials = AsyncMock(return_value={"org1": True, "org2": False})
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_check_credentials()
+        result = await mcp_module.cloudctl_check_credentials()
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_token_status_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_token_status_success(self, mock_skill_class: MagicMock) -> None:
         """token_status tool should get token info."""
         mock_instance = MagicMock()
         mock_result = MagicMock()
@@ -92,26 +102,28 @@ class TestMCPToolFunctions:
         mock_instance.get_token_status = AsyncMock(return_value=mock_result)
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_token_status("test-org")
+        result = await mcp_module.cloudctl_token_status("test-org")
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_verify_credentials_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_verify_credentials_success(self, mock_skill_class: MagicMock) -> None:
         """verify_credentials tool should test access."""
         mock_instance = MagicMock()
         mock_instance.verify_credentials = AsyncMock(return_value=True)
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_verify_credentials("test-org")
+        result = await mcp_module.cloudctl_verify_credentials("test-org")
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
         assert "true" in result.lower()
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_switch_region_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_switch_region_success(self, mock_skill_class: MagicMock) -> None:
         """switch_region tool should change AWS region."""
         mock_instance = MagicMock()
         mock_result = MagicMock()
@@ -119,13 +131,14 @@ class TestMCPToolFunctions:
         mock_instance.switch_region = AsyncMock(return_value=mock_result)
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_switch_region("us-east-1")
+        result = await mcp_module.cloudctl_switch_region("us-east-1")
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_switch_project_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_switch_project_success(self, mock_skill_class: MagicMock) -> None:
         """switch_project tool should change GCP project."""
         mock_instance = MagicMock()
         mock_result = MagicMock()
@@ -133,37 +146,40 @@ class TestMCPToolFunctions:
         mock_instance.switch_project = AsyncMock(return_value=mock_result)
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_switch_project("test-project")
+        result = await mcp_module.cloudctl_switch_project("test-project")
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_ensure_access_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_ensure_access_success(self, mock_skill_class: MagicMock) -> None:
         """ensure_access tool should verify organization access."""
         mock_instance = MagicMock()
         mock_instance.ensure_cloud_access = AsyncMock(return_value={"access": True})
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_ensure_access("test-org")
+        result = await mcp_module.cloudctl_ensure_access("test-org")
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_validate_switch_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_validate_switch_success(self, mock_skill_class: MagicMock) -> None:
         """validate_switch tool should check last switch."""
         mock_instance = MagicMock()
         mock_instance.validate_switch = AsyncMock(return_value={"valid": True})
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_validate_switch()
+        result = await mcp_module.cloudctl_validate_switch()
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)
 
+    @pytest.mark.asyncio
     @patch("cloudctl_skill.mcp.CloudctlSkill")
-    def test_cloudctl_login_success(self, mock_skill_class: MagicMock) -> None:
+    async def test_cloudctl_login_success(self, mock_skill_class: MagicMock) -> None:
         """login tool should start SSO login."""
         mock_instance = MagicMock()
         mock_result = MagicMock()
@@ -171,7 +187,7 @@ class TestMCPToolFunctions:
         mock_instance.login = AsyncMock(return_value=mock_result)
         mock_skill_class.return_value = mock_instance
 
-        result = mcp_module.cloudctl_login("test-org")
+        result = await mcp_module.cloudctl_login("test-org")
         assert isinstance(result, str)
         # Should be valid JSON
         json.loads(result)

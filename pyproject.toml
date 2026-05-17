@@ -45,7 +45,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-cloudctl-skill = "cloudctl_skill.mcp:main"
+cloudctl-skill = "cloudctl_skill.mcp:serve"
 
 [tool.poetry.dependencies]
 python = "^3.12"
